@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -58,29 +59,31 @@ public class ConexionBD extends JFrame{
             
 
             // Crea un conjunto de datos
-            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-            while (resultado.next()){
+             // Crear un mapa para contar las zonas
+            HashMap<String, Integer> zonaCount = new HashMap<>();
+
+            while (resultado.next()) {
                 String zona = resultado.getString("Zona");
-                if (zona.equals("Europa"))
-                    zona1++;
-                if (zona.equals("Australia y Oceanía"))
-                    zona2++;
-                if (zona.equals("África"))
-                    zona3++;
-                if (zona.equals("Centroamérica y Caribe"))
-                    zona4++;
-                if (zona.equals("Norteamérica"))
-                    zona5++;
-                if (zona.equals("Asia"))
-                    zona6++;
-                System.out.println("Zona1: "+ zona1 + " Zona2: " + zona2 + " Zona3: "+ zona3 +" Zona4: " +zona4+ " Zona5: " + zona5 + " Zona6: " + zona6);
-                dataset.addValue(zona1, "UNIDADES", zona);
-                
+                // Verificar si la zona ya está en el mapa
+                if (zonaCount.containsKey(zona)) {
+                    int count = zonaCount.get(zona);
+                    zonaCount.put(zona, count + 1);
+                } else {
+                    zonaCount.put(zona, 1);
+                }
             }
-            
+
+            // Crear un conjunto de datos
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+            // Agregar los valores al conjunto de datos
+            for (String zona : zonaCount.keySet()) {
+                int count = zonaCount.get(zona);
+                dataset.addValue(count, "UNIDADES", zona);
+            }
 
             // Crea un gráfico de barras
-            JFreeChart chart = ChartFactory.createBarChart( "Unidades vendidas por pedido", "ID_PEDIDO", "Unidades", dataset);
+            JFreeChart chart = ChartFactory.createBarChart("Unidades vendidas por zona", "Zona", "Unidades", dataset);
 
             chartPanel = new ChartPanel(chart);
             chartPanel.setPreferredSize(new Dimension(800, 800));
